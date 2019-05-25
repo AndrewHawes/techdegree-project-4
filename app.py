@@ -196,6 +196,18 @@ def view_entries(entries=None):
             input("\nFinal entry. Press Enter to return to menu...")
 
 
+def get_date(input_msg, ignore=False):
+    pattern = r'\d{2}/\d{2}/\d{4}'
+    date_string = input(input_msg)
+    if re.match(pattern, date_string):
+        return datetime.datetime.strptime(date_string, DATEFORMAT).date()
+    else:
+        if ignore:
+            return ""
+        else:
+            print("Date must be in MM/DD/YYYY format.")
+            return get_date(input_msg)
+
 def find_entry():
     """Find a previous entry"""
     if not Entry.select():
@@ -274,15 +286,6 @@ def find_entry():
         dates = sorted(set(entry.date.strftime(DATEFORMAT) for entry in entries))
         for entry_date in dates:
             print(entry_date)
-
-    def get_date(input_msg):
-        pattern = r'\d{2}/\d{2}/\d{4}'
-        date_string = input(input_msg)
-        if re.match(pattern, date_string):
-            return datetime.datetime.strptime(date_string, DATEFORMAT).date()
-        else:
-            print("Date must be in MM/DD/YYYY format.")
-            return get_date(input_msg)
 
     def date():
         show_dates()
@@ -364,6 +367,7 @@ def delete_entry(entry):
 def edit_entry(entry):
     """Edit entry"""
     print("\nPress enter after making changes. Leave fields you do not wish to change blank.")
+    date = get_date("Date: ", True)
     employee_name = get_employee_name(entry.employee_name)
     task_name = get_task_name(entry.task_name)
     minutes_spent = get_minutes(entry.minutes_spent)
@@ -372,6 +376,7 @@ def edit_entry(entry):
         notes = get_notes()
 
     if input("Would you like to save changes? [Yn] ").lower() != 'n':
+        entry.date = date or entry.date
         entry.employee_name = employee_name or entry.employee_name
         entry.task_name = task_name or entry.task_name
         entry.minutes_spent = minutes_spent or entry.minutes_spent
